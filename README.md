@@ -1,0 +1,1 @@
+This is sample repository for CI/CD pipeline for creating GKE cluster.

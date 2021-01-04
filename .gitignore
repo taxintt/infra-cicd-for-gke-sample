@@ -1,0 +1,20 @@
+# https://github.com/github/gitignore/blob/master/Terraform.gitignore
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# tfvars files (which are likely to contain sentitive data)
+*.tfvars
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+# example: *tfplan*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc

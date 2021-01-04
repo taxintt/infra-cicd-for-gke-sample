@@ -1,0 +1,65 @@
+name: terraform-apply
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - '**'
+    paths:
+      - '**.tf'
+
+env:
+  TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+jobs:
+  tf-cd:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+    steps:
+      - name: clone repository
+        uses: actions/checkout@v2
+
+      - name: setup gcloud sdk
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      
+      - name: setup tfnotify
+        run: |
+          sudo curl -fL -o tfnotify.tar.gz https://github.com/mercari/tfnotify/releases/download/v0.7.0/tfnotify_linux_amd64.tar.gz
+          sudo tar -C /usr/bin -xzf ./tfnotify.tar.gz
+
+      - name: set up terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.13.4
+          cli_config_credentials_token: ${{ secrets.GCP_TF_TOKEN }}
+      
+      - name: terraform fmt
+        id: fmt
+        run: terraform fmt
+        continue-on-error: true
+
+      - name: terraform init
+        id: init
+        run: terraform init
+
+      - name: terraform validate
+        id: validate
+        run: terraform validate -no-color
+        continue-on-error: false
+
+      - name: terraform apply
+        id: plan
+        run: |
+          terraform apply -no-color -auto-approve | tfnotify --config .tfnotify/slack.yml apply --message "$(date)"
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_BOT_NAME: tf-notify-bot
+          GITHUB_TOKEN: ${{ secrets.github_token }}

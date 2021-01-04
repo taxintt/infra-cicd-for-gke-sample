@@ -1,0 +1,45 @@
+ci: github-actions
+notifier:
+  github:
+    token: $GITHUB_TOKEN
+    repository:
+      owner: "taxintt"
+      name: "sample-cicd-of-gke"
+terraform:
+  fmt:
+    template: |
+      {{ .Title }}
+      {{ .Message }}
+      {{ .Result }}
+      {{ .Body }}
+  plan:
+    template: |
+      {{ .Title }} <sup>[CI link]( {{ .Link }} )</sup>
+      {{ .Message }}
+      {{if .Result}}
+      <pre><code>{{ .Result }}
+      </pre></code>
+      {{end}}
+      <details><summary>Details (Click me)</summary>
+      <pre><code>{{ .Body }}
+      <pre></code></details>
+    when_destroy:
+      template: |
+        ## :warning: Resource Deletion will happen :warning:
+        This plan contains **resource deletion operation**. Please check the plan result very carefully!!!
+        {{ .Link }}
+        {{if .Result}}
+        <pre><code> {{ .Result }}
+        </pre></code>
+        {{end}}
+  apply:
+    template: |
+      {{ .Title }}
+      {{ .Message }}
+      {{if .Result}}
+      <pre><code>{{ .Result }}
+      </pre></code>
+      {{end}}
+      <details><summary>Details (Click me)</summary>
+      <pre><code>{{ .Body }}
+      </pre></code></details>
